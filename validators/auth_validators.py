@@ -1,50 +1,51 @@
-from validators.validation_builder import BaseValidation, ValidationBuilder
 from models.user import User
+from validators.validation_builder import BaseValidation, ValidationBuilder
+
+
 class AuthValidationBuilder(ValidationBuilder):
     def require_signup_data(self):
         def validate(builder, **kwargs):
-            email = kwargs.get('email', '').strip()
-            password = kwargs.get('password', '')
-            name = kwargs.get('name', '').strip()
-            
+            email = kwargs.get("email", "").strip()
+            password = kwargs.get("password", "")
+            name = kwargs.get("name", "").strip()
+
             # Push errors if validation fails
             if not email:
                 builder.push_error("Email is required")
-            elif '@' not in email or '.' not in email.split('@')[-1]:
+            elif "@" not in email or "." not in email.split("@")[-1]:
                 builder.push_error("Invalid email format")
-            
+
             user_by_email = User.get_by_email(email)
             if user_by_email:
                 builder.push_error("Email is already registered")
-                
+
             if not password:
                 builder.push_error("Password is required")
             elif len(password) < 6:
                 builder.push_error("Password must be at least 6 characters long")
-                
+
             if not name:
                 builder.push_error("Name is required")
             elif len(name) < 2:
                 builder.push_error("Name must be at least 2 characters long")
-                
+
         self.rules.append(validate)
         return self
-    
+
     def require_login_data(self):
         def validate(builder, **kwargs):
-            data = kwargs.get('data', {})
-            email = data.get('email', '').strip()
-            password = data.get('password', '')
-            
+            email = kwargs.get("email", "").strip()
+            password = kwargs.get("password", "").strip()
+
             # Push errors if validation fails
             if not email:
                 builder.push_error("Email is required")
-            elif '@' not in email:
+            elif "@" not in email:
                 builder.push_error("Invalid email format")
-                
+
             if not password:
                 builder.push_error("Password is required")
-                
+
         self.rules.append(validate)
         return self
 

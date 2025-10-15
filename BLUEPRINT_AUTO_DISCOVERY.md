@@ -26,10 +26,10 @@ Hệ thống tự động phát hiện và đăng ký các Blueprint từ thư m
 ```
 flask/
 ├── app_factory.py          # Main factory với auto-discovery
-├── blueprint_discovery.py  # Advanced discovery system  
+├── blueprint_discovery.py  # Advanced discovery system
 └── routes/
     ├── main.py            # ✅ Auto-discovered
-    ├── api.py             # ✅ Auto-discovered  
+    ├── api.py             # ✅ Auto-discovered
     ├── blog.py            # ✅ Auto-discovered
     ├── forms.py           # ✅ Auto-discovered
     ├── errors.py          # ✅ Auto-discovered
@@ -51,7 +51,7 @@ my_feature_bp = Blueprint('my_feature', __name__, url_prefix='/my-feature')
 def feature_home():
     return jsonify({"message": "My new feature!"})
 
-@my_feature_bp.route('/info')  
+@my_feature_bp.route('/info')
 def feature_info():
     return jsonify({"blueprint": "my_feature", "status": "active"})
 ```
@@ -68,7 +68,7 @@ python app.py
 🎯 Found 7 blueprints in 'routes/' directory
 🔍 Auto-registering discovered blueprints...
   ✅ api          | api             | /api       | 10 routes
-  ✅ blog         | blog            | /blog      | 3 routes  
+  ✅ blog         | blog            | /blog      | 3 routes
   ✅ demo         | demo            | /demo      | 2 routes
   ✅ errors       | errors          |            | 4 routes
   ✅ forms        | forms           |            | 2 routes
@@ -83,7 +83,7 @@ python app.py
 ✅ {blueprint_name} | {module_name} | {url_prefix} | {routes_count} routes
 ```
 
-- **blueprint_name**: Tên của blueprint 
+- **blueprint_name**: Tên của blueprint
 - **module_name**: Tên file (không có .py)
 - **url_prefix**: URL prefix (nếu có)
 - **routes_count**: Số lượng routes trong blueprint
@@ -116,7 +116,7 @@ auto_register_blueprints(app, verbose=False)
   ✅ api          | api             | /api       | 10 routes
   ❌ Failed to register broken_bp: Invalid blueprint configuration
 
-⚠️  Failed imports:  
+⚠️  Failed imports:
   • broken_module.py: Import error: No module named 'missing_dependency'
 ```
 
@@ -127,7 +127,7 @@ auto_register_blueprints(app, verbose=False)
 # File: routes/auth.py
 auth_bp = Blueprint('auth', __name__)
 
-# File: routes/admin.py  
+# File: routes/admin.py
 admin_bp = Blueprint('admin', __name__)
 
 # File: routes/user_management.py
@@ -186,9 +186,9 @@ python -c "from routes.my_module import my_bp; print(my_bp.name)"
 ```python
 def register_blueprints(app):
     from routes.main import main_bp
-    from routes.api import api_bp  
+    from routes.api import api_bp
     from routes.blog import blog_bp
-    
+
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(blog_bp)
@@ -205,7 +205,7 @@ def register_blueprints(app: Flask) -> None:
 
 Auto-Discovery System giúp:
 - 🔥 **Faster Development**: Không cần manual registration
-- 🧹 **Cleaner Code**: Ít boilerplate code  
+- 🧹 **Cleaner Code**: Ít boilerplate code
 - 📈 **Better Scalability**: Dễ dàng add new features
 - 🐛 **Easier Debugging**: Detailed error messages
 

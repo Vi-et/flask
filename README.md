@@ -6,11 +6,11 @@
 ## Cấu trúc dự án
 ```
 flask/
-├── app.py                    # Entry point chính 
+├── app.py                    # Entry point chính
 ├── app_factory.py           # Application Factory Pattern
 ├── migrate.py               # Database migration script
 ├── blog.db                  # SQLite database
-├── 
+├──
 ├── config/
 │   ├── __init__.py
 │   ├── config.py           # Configuration classes
@@ -25,7 +25,7 @@ flask/
 ├── routes/
 │   ├── __init__.py
 │   ├── main.py            # Main web routes
-│   ├── blog.py            # Blog routes  
+│   ├── blog.py            # Blog routes
 │   ├── forms.py           # Form handling routes
 │   ├── api.py             # RESTful API endpoints
 │   └── errors.py          # Error handlers
@@ -98,7 +98,7 @@ python app.py
 - `POST /api/users` - Tạo user mới
 - `GET /api/users/<id>` - Lấy thông tin user cụ thể
 
-### Posts  
+### Posts
 - `GET /api/posts` - Lấy danh sách posts
 - `POST /api/posts` - Tạo post mới
 - `GET /api/posts/<id>` - Lấy thông tin post cụ thể
@@ -165,7 +165,7 @@ class Post(BaseModel):
 - Dễ dàng tìm và sửa lỗi trong từng module cụ thể
 - Code được tổ chức theo chức năng rõ ràng
 
-### ✅ Scalability  
+### ✅ Scalability
 - Dễ dàng thêm features mới mà không ảnh hưởng code cũ
 - Team có thể làm việc parallel trên các modules khác nhau
 
@@ -214,7 +214,7 @@ class Post(BaseModel):
 
 Việc refactor từ monolithic sang modular architecture đã:
 - ✅ Cải thiện code organization
-- ✅ Tăng maintainability  
+- ✅ Tăng maintainability
 - ✅ Chuẩn bị cho scaling
 - ✅ Áp dụng industry best practices
 

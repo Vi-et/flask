@@ -1,0 +1,18 @@
+# Bandit security linter configuration (YAML format)
+exclude_dirs:
+  - venv
+  - .venv
+  - node_modules
+  - examples
+  - tests
+  - migrations
+
+skips:
+  - B101  # assert_used
+  - B601  # paramiko_calls
+  - B602  # subprocess_popen_with_shell_equals_true
+  - B605  # start_process_with_a_shell
+  - B607  # start_process_with_partial_path
+
+severity: medium
+confidence: medium

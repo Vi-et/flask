@@ -5,7 +5,7 @@
 Hệ thống authentication được xây dựng với **JWT (JSON Web Tokens)** cho Flask API, bao gồm:
 
 - ✅ User registration & login
-- ✅ JWT token generation & validation  
+- ✅ JWT token generation & validation
 - ✅ Password hashing với Werkzeug
 - ✅ Role-based access control (Admin/User)
 - ✅ Route protection decorators
@@ -16,7 +16,7 @@ Hệ thống authentication được xây dựng với **JWT (JSON Web Tokens)**
 ### **Components:**
 1. **User Model** - Extended với auth fields
 2. **AuthService** - Business logic layer
-3. **JWT Config** - Token configuration  
+3. **JWT Config** - Token configuration
 4. **Auth Decorators** - Route protection
 5. **Auth Routes** - API endpoints
 
@@ -29,7 +29,7 @@ users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(120) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,    -- NEW
-    is_active BOOLEAN DEFAULT 1,            -- NEW  
+    is_active BOOLEAN DEFAULT 1,            -- NEW
     is_admin BOOLEAN DEFAULT 0,             -- NEW
     last_login DATETIME,                    -- NEW
     created_at DATETIME,
@@ -66,7 +66,7 @@ Content-Type: application/json
 
 {
     "name": "John Doe",
-    "email": "john@example.com", 
+    "email": "john@example.com",
     "password": "password123"
 }
 
@@ -106,7 +106,7 @@ Content-Type: application/json
 # Response: Same as register
 ```
 
-#### **Get Profile** 
+#### **Get Profile**
 ```bash
 GET /api/auth/me
 Authorization: Bearer <access_token>
@@ -116,7 +116,7 @@ Authorization: Bearer <access_token>
     "success": true,
     "data": {
         "id": 1,
-        "name": "John Doe", 
+        "name": "John Doe",
         "email": "john@example.com",
         "is_active": true,
         "is_admin": false,
@@ -151,7 +151,7 @@ Content-Type: application/json
 
 #### **Refresh Token**
 ```bash
-POST /api/auth/refresh  
+POST /api/auth/refresh
 Authorization: Bearer <refresh_token>
 
 # Response:
@@ -188,7 +188,7 @@ from flask_jwt_extended import jwt_required
 def protected_route():
     pass
 
-@route('/optional-auth') 
+@route('/optional-auth')
 @auth_required(optional=True)  # Optional auth
 def optional_auth_route():
     pass
@@ -266,18 +266,18 @@ curl -X POST "http://127.0.0.1:8888/api/auth/register" \
      -H "Content-Type: application/json" \
      -d '{
        "name": "Test User",
-       "email": "test@example.com", 
+       "email": "test@example.com",
        "password": "password123"
      }'
 ```
 
-### **2. Login**  
+### **2. Login**
 ```bash
 curl -X POST "http://127.0.0.1:8888/api/auth/login" \
      -H "Content-Type: application/json" \
      -d '{
        "email": "test@example.com",
-       "password": "password123" 
+       "password": "password123"
      }'
 ```
 
@@ -309,7 +309,7 @@ curl -X PUT "http://127.0.0.1:8888/api/auth/me" \
 
 ### **JWT Security:**
 - ✅ 1 hour access token expiry
-- ✅ 30 day refresh token expiry  
+- ✅ 30 day refresh token expiry
 - ✅ User claims in token payload
 - ✅ Fresh token requirement for sensitive operations
 
@@ -331,12 +331,12 @@ from flask_jwt_extended import get_jwt, get_jwt_identity
 def custom_auth():
     claims = get_jwt()
     user_id = get_jwt_identity()
-    
+
     if claims.get('is_admin'):
         # Admin logic
         pass
     elif claims.get('is_active'):
-        # Regular user logic  
+        # Regular user logic
         pass
 ```
 
@@ -354,7 +354,7 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 
 ### **Common JWT Errors:**
 - `401` - Missing/Invalid/Expired token
-- `403` - Insufficient privileges  
+- `403` - Insufficient privileges
 - `404` - User not found
 - `409` - Email already exists
 - `400` - Validation errors
@@ -387,7 +387,7 @@ def check_if_token_revoked(jwt_header, jwt_payload):
    @route('/users')
    def get_users():
        pass
-   
+
    # After
    @route('/users')
    @jwt_required()  # Add this
@@ -404,7 +404,7 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 def admin_endpoint():
     pass
 
-@owner_or_admin_required()  
+@owner_or_admin_required()
 def user_resource(user_id):
     pass
 

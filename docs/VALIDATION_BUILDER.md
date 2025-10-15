@@ -22,7 +22,7 @@ def validate_user_registration(data):
 # Code mới - rõ ràng, linh hoạt và tái sử dụng được
 schema = validate_schema()
 schema.field('name').required().min_length(2).max_length(50)
-schema.field('email').required().email().custom(check_uniqueness, "Email already exists")  
+schema.field('email').required().email().custom(check_uniqueness, "Email already exists")
 schema.field('password').required().min_length(8).password_strength()
 
 errors = schema.validate(data)
@@ -55,7 +55,7 @@ schema.field('password').required().min_length(8).password_strength()
 # Validate toàn bộ data
 user_data = {
     'name': 'John Doe',
-    'email': 'john@example.com', 
+    'email': 'john@example.com',
     'password': 'StrongPass123!'
 }
 
@@ -99,7 +99,7 @@ name_errors = name_validation().validate("Valid Name")
 - `.min_value(value, message)` - Giá trị tối thiểu
 - `.max_value(value, message)` - Giá trị tối đa
 
-### Format Rules  
+### Format Rules
 - `.email(message)` - Định dạng email
 - `.numeric(message)` - Chỉ chấp nhận số
 - `.matches(pattern, message)` - Regex pattern matching
@@ -186,17 +186,17 @@ class UserRegistrationValidator(BaseValidator):
 ```
 
 ### Sau:
-```python  
+```python
 class UserRegistrationValidator(BaseValidator):
     def __init__(self, data):
         super().__init__(data)
         self.schema = self._build_schema()
-    
+
     def _build_schema(self):
         schema = validate_schema()
         schema.field('name').required().min_length(2).max_length(50)
         return schema
-    
+
     def validate(self):
         errors = self.schema.validate(self.data)
         # Convert errors to ValidationResult format

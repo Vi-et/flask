@@ -3,18 +3,19 @@ Authentication API endpoints
 Routes for user registration, login, logout, and profile management
 """
 from flask import Blueprint, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
+
 from services.auth_service import AuthService
+from utils.auth_decorators import auth_required, fresh_jwt_required
 from utils.response_helper import ResponseHelper
 from utils.route_decorators import log_api_route
-from utils.auth_decorators import auth_required, fresh_jwt_required
 
 # Create Blueprint
-auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
+auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 
-@auth_bp.route('/register', methods=['POST'])
-@log_api_route('auth', 'register')
+@auth_bp.route("/register", methods=["POST"])
+@log_api_route("auth", "register")
 def register():
     """
     POST /api/auth/register
@@ -25,8 +26,8 @@ def register():
     return ResponseHelper.service_response(result)
 
 
-@auth_bp.route('/login', methods=['POST'])
-@log_api_route('auth', 'login')
+@auth_bp.route("/login", methods=["POST"])
+@log_api_route("auth", "login")
 def login():
     """
     POST /api/auth/login
@@ -37,9 +38,9 @@ def login():
     return ResponseHelper.service_response(result)
 
 
-@auth_bp.route('/refresh', methods=['POST'])
+@auth_bp.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
-@log_api_route('auth', 'refresh_token')
+@log_api_route("auth", "refresh_token")
 def refresh():
     """
     POST /api/auth/refresh
@@ -49,9 +50,9 @@ def refresh():
     return ResponseHelper.service_response(result)
 
 
-@auth_bp.route('/logout', methods=['POST'])
+@auth_bp.route("/logout", methods=["POST"])
 @jwt_required()
-@log_api_route('auth', 'logout')
+@log_api_route("auth", "logout")
 def logout():
     """
     POST /api/auth/logout
@@ -61,9 +62,9 @@ def logout():
     return ResponseHelper.service_response(result)
 
 
-@auth_bp.route('/me', methods=['GET'])
+@auth_bp.route("/me", methods=["GET"])
 @jwt_required()
-@log_api_route('auth', 'get_profile')
+@log_api_route("auth", "get_profile")
 def get_profile():
     """
     GET /api/auth/me
@@ -73,9 +74,9 @@ def get_profile():
     return ResponseHelper.service_response(result)
 
 
-@auth_bp.route('/me', methods=['PUT'])
+@auth_bp.route("/me", methods=["PUT"])
 @jwt_required()
-@log_api_route('auth', 'update_profile')
+@log_api_route("auth", "update_profile")
 def update_profile():
     """
     PUT /api/auth/me
@@ -86,9 +87,9 @@ def update_profile():
     return ResponseHelper.service_response(result)
 
 
-@auth_bp.route('/change-password', methods=['PUT'])
+@auth_bp.route("/change-password", methods=["PUT"])
 @fresh_jwt_required()
-@log_api_route('auth', 'change_password')
+@log_api_route("auth", "change_password")
 def change_password():
     """
     PUT /api/auth/change-password
@@ -99,41 +100,42 @@ def change_password():
     return ResponseHelper.service_response(result)
 
 
-@auth_bp.route('/verify', methods=['GET'])
+@auth_bp.route("/verify", methods=["GET"])
 @jwt_required()
-@log_api_route('auth', 'verify_token')
+@log_api_route("auth", "verify_token")
 def verify_token():
     """
     GET /api/auth/verify
     Verify if current token is valid
     """
     current_user_id = get_jwt_identity()
-    return ResponseHelper.success({
-        'valid': True,
-        'user_id': current_user_id,
-        'message': 'Token is valid'
-    })
+    return ResponseHelper.success(
+        {"valid": True, "user_id": current_user_id, "message": "Token is valid"}
+    )
 
 
 # Health check endpoint (no auth required)
-@auth_bp.route('/health', methods=['GET'])
-@log_api_route('auth', 'health_check')
+@auth_bp.route("/health", methods=["GET"])
+@log_api_route("auth", "health_check")
 def health_check():
     """
     GET /api/auth/health
     Authentication service health check
     """
-    return ResponseHelper.success({
-        'service': 'auth',
-        'status': 'healthy',
-        'endpoints': [
-            'POST /api/auth/register',
-            'POST /api/auth/login',
-            'POST /api/auth/refresh',
-            'POST /api/auth/logout',
-            'GET /api/auth/me',
-            'PUT /api/auth/me',
-            'PUT /api/auth/change-password',
-            'GET /api/auth/verify'
-        ]
-    }, 'Authentication service is healthy')
+    return ResponseHelper.success(
+        {
+            "service": "auth",
+            "status": "healthy",
+            "endpoints": [
+                "POST /api/auth/register",
+                "POST /api/auth/login",
+                "POST /api/auth/refresh",
+                "POST /api/auth/logout",
+                "GET /api/auth/me",
+                "PUT /api/auth/me",
+                "PUT /api/auth/change-password",
+                "GET /api/auth/verify",
+            ],
+        },
+        "Authentication service is healthy",
+    )

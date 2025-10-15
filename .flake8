@@ -1,0 +1,40 @@
+# Flake8 Configuration
+[flake8]
+max-line-length = 88
+exclude =
+    .git,
+    __pycache__,
+    venv,
+    .venv,
+    migrations,
+    build,
+    dist,
+    .eggs,
+    *.egg-info
+
+# Ignore specific error codes
+ignore =
+    # E203: Whitespace before ':' (conflicts with Black)
+    E203,
+    # W503: Line break before binary operator (conflicts with Black)
+    W503,
+    # E501: Line too long (handled by Black)
+    E501,
+    # F401: Module imported but unused (sometimes needed)
+    F401
+
+# Per-file ignores
+per-file-ignores =
+    # __init__.py files can have unused imports
+    __init__.py:F401,
+    # Test files can have unused imports and long lines
+    test_*.py:F401,E501
+    # Config files can have long lines
+    config/*.py:E501
+
+# Enable additional checks
+select = E,W,F,C,N
+
+# Complexity settings
+max-complexity = 10
+max-cognitive-complexity = 12
