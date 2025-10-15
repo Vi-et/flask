@@ -6,6 +6,12 @@ from typing import Dict, Any
 from models.user import User
 from utils.service_response_helper import ServiceResponseHelper
 from utils.pagination_helper import PaginationHelper
+from validators.user_validators import (
+    validate_user_create,
+    validate_user_update,
+    validate_user_search,
+    validate_user_bulk_operation
+)
 
 
 class UserService:
@@ -45,17 +51,16 @@ class UserService:
             Dictionary with created user data or error
         """
         try:
-            # Validation
-            if not data or not data.get('name') or not data.get('email'):
-                return ServiceResponseHelper.bad_request('Name and email are required')
+            # Validate user creation data
+            validation_result = validate_user_create(data)
+            if not validation_result.is_valid:
+                return ServiceResponseHelper.error(
+                    validation_result.get_first_error(), 
+                    400
+                )
             
+            # Create user with validated data
             email = data['email'].strip().lower()
-            
-            # Check if email already exists
-            if User.get_by_email(email):
-                return ServiceResponseHelper.already_exists('User', f"email {email}")
-            
-            # Create user
             new_user = User(
                 name=data['name'].strip(),
                 email=email
@@ -86,19 +91,24 @@ class UserService:
             if not user:
                 return ServiceResponseHelper.not_found('User')
             
-            if not data:
-                return ServiceResponseHelper.bad_request('No data provided')
+            # Add current user ID for validation
+            validation_data = data.copy()
+            validation_data['current_user_id'] = user_id
             
-            # Update fields
+            # Validate user update data
+            validation_result = validate_user_update(validation_data)
+            if not validation_result.is_valid:
+                return ServiceResponseHelper.error(
+                    validation_result.get_first_error(), 
+                    400
+                )
+            
+            # Update fields with validated data
             if 'name' in data:
                 user.name = data['name'].strip()
                 
             if 'email' in data:
-                new_email = data['email'].strip().lower()
-                # Check if new email already exists (but not for current user)
-                if new_email != user.email and User.get_by_email(new_email):
-                    return ServiceResponseHelper.already_exists('User', f"email {new_email}")
-                user.email = new_email
+                user.email = data['email'].strip().lower()
             
             if user.save():
                 return ServiceResponseHelper.updated(user.to_dict(), 'User updated successfully')

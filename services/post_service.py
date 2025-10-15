@@ -6,6 +6,12 @@ from typing import Dict, Any, Optional
 from models import Post, User, db
 from utils.service_response_helper import ServiceResponseHelper
 from utils.pagination_helper import PaginationHelper
+from validators.post_validators import (
+    validate_post_create,
+    validate_post_update,
+    validate_post_search,
+    validate_post_bulk_operation
+)
 
 
 class PostService:
@@ -47,23 +53,20 @@ class PostService:
             return ServiceResponseHelper.error(f"Failed to get posts: {str(e)}")
     
     @staticmethod
-    def create_post(title: str, content: str, author_id: int) -> Dict[str, Any]:
+    def create_post(data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new post"""
         try:
-            # Validate required fields
-            if not all([title, content, author_id]):
+            # Validate post creation data
+            validation_result = validate_post_create(data)
+            if not validation_result.is_valid:
                 return ServiceResponseHelper.error(
-                    "Title, content and author_id are required", 
+                    validation_result.get_first_error(), 
                     400
                 )
             
-            # Check if author exists
-            author = User.query.get(author_id)
-            if not author:
-                return ServiceResponseHelper.error(
-                    f"Author with ID {author_id} not found", 
-                    404
-                )
+            title = data['title']
+            content = data['content']
+            author_id = data['author_id']
             
             # Create post
             post = Post(title=title, content=content, author_id=author_id)

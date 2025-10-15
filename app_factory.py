@@ -6,6 +6,7 @@ from typing import Optional
 from flask import Flask, request
 from config.config import config
 from config.database import db, init_database
+from config.jwt_config import JWTConfig
 from utils.loguru_config import LoguruConfig
 
 def create_app(config_name: Optional[str] = None) -> Flask:
@@ -21,6 +22,9 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     
     # Initialize Loguru logging
     LoguruConfig.init_app(app)
+    
+    # Initialize JWT
+    JWTConfig.init_app(app)
     
     # Initialize extensions
     db.init_app(app)

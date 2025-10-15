@@ -9,20 +9,22 @@ class ServiceResponseHelper:
     """Helper class for creating standardized service responses"""
     
     @staticmethod
-    def success(data: Any = None, message: str = None, pagination: Dict = None) -> Dict[str, Any]:
+    def success(data: Any = None, message: str = None, status_code: int = 200, pagination: Dict = None) -> Dict[str, Any]:
         """
         Create success response for service layer
         
         Args:
             data: Response data (optional)
             message: Success message (optional)
+            status_code: HTTP status code (default 200)
             pagination: Pagination info (optional)
             
         Returns:
             Standardized success response dictionary
         """
         response = {
-            'success': True
+            'success': True,
+            'status_code': status_code
         }
         
         if data is not None:
@@ -37,24 +39,22 @@ class ServiceResponseHelper:
         return response
     
     @staticmethod
-    def error(error_message: str, error_code: int = None) -> Dict[str, Any]:
+    def error(error_message: str, error_code: int = 400) -> Dict[str, Any]:
         """
         Create error response for service layer
         
         Args:
             error_message: Error description
-            error_code: HTTP status code (optional)
+            error_code: HTTP status code (default 400)
             
         Returns:
             Standardized error response dictionary
         """
         response = {
             'success': False,
+            'status_code': error_code,
             'error': error_message
         }
-        
-        if error_code:
-            response['error_code'] = error_code
             
         return response
     

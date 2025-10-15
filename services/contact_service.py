@@ -8,6 +8,7 @@ from utils.service_response_helper import ServiceResponseHelper
 from utils.pagination_helper import PaginationHelper
 
 
+
 class ContactService:
     """Service class for contact business logic"""
     
@@ -41,22 +42,20 @@ class ContactService:
             return ServiceResponseHelper.error(f"Failed to get contacts: {str(e)}")
     
     @staticmethod
-    def create_contact(name: str, email: str, message: str) -> Dict[str, Any]:
+    def create_contact(data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new contact"""
         try:
-            # Validate required fields
-            if not all([name, email, message]):
+            # Validate contact creation data
+            validation_result = validate_contact_create(data)
+            if not validation_result.is_valid:
                 return ServiceResponseHelper.error(
-                    "Name, email and message are required", 
+                    validation_result.get_first_error(), 
                     400
                 )
             
-            # Validate email format (basic)
-            if '@' not in email or '.' not in email:
-                return ServiceResponseHelper.error(
-                    "Invalid email format", 
-                    400
-                )
+            name = data['name']
+            email = data['email']
+            message = data['message']
             
             # Create contact
             contact = Contact(name=name, email=email, message=message)

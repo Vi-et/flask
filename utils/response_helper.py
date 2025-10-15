@@ -25,7 +25,8 @@ class ResponseHelper:
             Tuple of (jsonified response, status_code)
         """
         response = {
-            'status': 'success'
+            'status': 'success',
+            'status_code': status_code
         }
         
         if data is not None:
@@ -56,6 +57,7 @@ class ResponseHelper:
         """
         response = {
             'status': 'error',
+            'status_code': status_code,
             'message': message
         }
         
@@ -102,7 +104,7 @@ class ResponseHelper:
             return jsonify(response_data), success_status
         else:
             # Error response
-            status_code = result.get('error_code', 500)
+            status_code = result.get('status_code', 500)  # Fixed: use 'status_code' instead of 'error_code'
             return ResponseHelper.error_response(
                 message=result['error'],
                 status_code=status_code
