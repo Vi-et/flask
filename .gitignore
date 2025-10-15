@@ -1,0 +1,80 @@
+# Flask
+instance/
+.webassets-cache
+
+# Environment files (keep .env.example, ignore actual .env files with secrets)
+.env.local
+.env.*.local
+.env.production  # This contains production secrets
+# .env  # Comment this out if you want to commit development settings
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+blog.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Uploads
+uploads/
+static/uploads/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Security
+*.pem
+*.key
+*.crt
