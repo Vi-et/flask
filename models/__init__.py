@@ -46,3 +46,24 @@ class BaseModel(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+
+# Import all models to ensure they are registered with SQLAlchemy
+# This helps avoid "failed to locate a name" errors
+
+
+def import_models():
+    """Import all models to register them with SQLAlchemy"""
+    try:
+        from models.post import Post
+        from models.token_blacklist import TokenBlacklist
+        from models.user import User
+
+        return True
+    except ImportError as e:
+        print(f"Warning: Could not import all models: {e}")
+        return False
+
+
+# Auto-import when module is loaded
+import_models()

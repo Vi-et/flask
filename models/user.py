@@ -23,9 +23,12 @@ class User(BaseModel):
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     last_login = db.Column(db.DateTime, nullable=True)
 
-    # Relationship với Post
+    # Relationship với Post (lazy loading to avoid circular import issues)
     posts = db.relationship(
-        "Post", backref="author", lazy=True, cascade="all, delete-orphan"
+        "Post",
+        backref=db.backref("author", lazy="select"),
+        lazy="dynamic",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self):
@@ -41,7 +44,7 @@ class User(BaseModel):
                 "is_active": self.is_active,
                 "is_admin": self.is_admin,
                 "last_login": self.last_login.isoformat() if self.last_login else None,
-                "posts_count": len(self.posts) if self.posts else 0,
+                "posts_count": self.posts.count() if self.posts else 0,
             }
         )
 
