@@ -60,7 +60,13 @@ class User(BaseModel):
         return check_password_hash(self.password_hash, password)  # type: ignore[no-any-return]
 
     def generate_tokens(self) -> dict:
-        """Generate JWT access and refresh tokens"""
+        """Generate JWT access and refresh tokens with JTI for blacklist support"""
+        import uuid
+
+        # Generate unique JTI (JWT ID) for each token
+        access_jti = str(uuid.uuid4())
+        refresh_jti = str(uuid.uuid4())
+
         additional_claims = {
             "is_admin": self.is_admin,
             "is_active": self.is_active,
@@ -72,10 +78,13 @@ class User(BaseModel):
             identity=self.id,
             additional_claims=additional_claims,
             expires_delta=timedelta(hours=1),
+            additional_headers={"jti": access_jti},
         )
 
         refresh_token = create_refresh_token(
-            identity=self.id, expires_delta=timedelta(days=30)
+            identity=self.id,
+            expires_delta=timedelta(days=30),
+            additional_headers={"jti": refresh_jti},
         )
 
         return {
@@ -83,6 +92,8 @@ class User(BaseModel):
             "refresh_token": refresh_token,
             "token_type": "Bearer",
             "expires_in": 3600,  # 1 hour
+            "access_jti": access_jti,  # For blacklist management
+            "refresh_jti": refresh_jti,  # For blacklist management
         }
 
     def update_last_login(self):

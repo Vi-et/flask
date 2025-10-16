@@ -11,6 +11,26 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 
+from constants.error_messages import (
+    ACCOUNT_DEACTIVATED,
+    CURRENT_PASSWORD_INCORRECT,
+    DATABASE_ERROR,
+    INVALID_CREDENTIALS,
+    USER_INACTIVE,
+    USER_NOT_FOUND,
+)
+from constants.http_status import (
+    BAD_REQUEST,
+    CREATED,
+    INTERNAL_SERVER_ERROR,
+    NOT_FOUND,
+    UNAUTHORIZED,
+)
+from constants.token_constants import (
+    REFRESH_TOKEN_TYPE,
+    TOKEN_ROTATION_REASON,
+    TOKEN_TYPE_CLAIM,
+)
 from models import db
 from models.user import User
 from utils.service_response_helper import ServiceResponseHelper
@@ -33,9 +53,8 @@ class AuthService:
             validation_result = SignUpValidator.validate(**data)
 
             if not validation_result["is_valid"]:
-                print(validation_result)
                 return ServiceResponseHelper.error(
-                    validation_result["first_error"], 400
+                    validation_result["first_error"], BAD_REQUEST
                 )
 
             # Create new user with validated data
@@ -46,8 +65,11 @@ class AuthService:
             user = User(name=name, email=email)
             user.set_password(password)
 
-            db.session.add(user)
-            db.session.commit()
+            # Sử dụng BaseModel.save() method
+            if not user.save():
+                return ServiceResponseHelper.error(
+                    DATABASE_ERROR, INTERNAL_SERVER_ERROR
+                )
 
             # Generate tokens
             tokens = user.generate_tokens()
@@ -56,11 +78,11 @@ class AuthService:
             return ServiceResponseHelper.success(
                 {"user": user.to_dict(), "tokens": tokens},
                 "User registered successfully",
-                status_code=201,
+                status_code=CREATED,
             )
 
         except Exception as e:
-            db.session.rollback()
+            # Note: user.save() already handles rollback internally
             return ServiceResponseHelper.error(f"Registration failed: {str(e)}")
 
     @staticmethod
@@ -71,7 +93,7 @@ class AuthService:
             validation_result = LoginValidator.validate(**data)
             if not validation_result["is_valid"]:
                 return ServiceResponseHelper.error(
-                    validation_result["first_error"], 400
+                    validation_result["first_error"], BAD_REQUEST
                 )
 
             email = data["email"].strip().lower()
@@ -80,15 +102,15 @@ class AuthService:
             # Find user by email
             user = User.get_by_email(email)
             if not user:
-                return ServiceResponseHelper.error("Invalid email or password", 401)
+                return ServiceResponseHelper.error(INVALID_CREDENTIALS, UNAUTHORIZED)
 
             # Check if user is active
             if not user.is_active:
-                return ServiceResponseHelper.error("Account is deactivated", 401)
+                return ServiceResponseHelper.error(ACCOUNT_DEACTIVATED, UNAUTHORIZED)
 
             # Verify password
             if not user.check_password(password):
-                return ServiceResponseHelper.error("Invalid email or password", 401)
+                return ServiceResponseHelper.error(INVALID_CREDENTIALS, UNAUTHORIZED)
 
             # Generate tokens
             tokens = user.generate_tokens()
@@ -105,17 +127,43 @@ class AuthService:
     def refresh_token() -> Dict[str, Any]:
         """Refresh access token using refresh token"""
         try:
+            # Get current JWT claims
+            current_jwt = get_jwt()
             current_user_id = get_jwt_identity()
+
+            # Validate token type - must be refresh token
+            if current_jwt.get(TOKEN_TYPE_CLAIM) != REFRESH_TOKEN_TYPE:
+                return ServiceResponseHelper.error(
+                    "Invalid token type. Refresh token required", UNAUTHORIZED
+                )
+
+            # Check if refresh token is blacklisted
+            from services.token_service import TokenService
+
+            jti = current_jwt.get("jti")
+            if jti and TokenService.is_token_revoked(jti):
+                return ServiceResponseHelper.error(
+                    "Refresh token has been revoked", UNAUTHORIZED
+                )
 
             user = User.query.get(current_user_id)
             if not user or not user.is_active:
-                return ServiceResponseHelper.error("User not found or inactive", 404)
+                return ServiceResponseHelper.error(USER_INACTIVE, NOT_FOUND)
 
-            # Generate new access token
+            # Revoke current refresh token first (Token Rotation)
+            if jti:
+                TokenService.revoke_token(
+                    jti=jti,
+                    user_id=current_user_id,
+                    token_type=REFRESH_TOKEN_TYPE,
+                    reason=TOKEN_ROTATION_REASON,
+                )
+
+            # Generate new access token AND refresh token
             tokens = user.generate_tokens()
 
             return ServiceResponseHelper.success(
-                {"tokens": tokens}, "Token refreshed successfully"
+                {"tokens": tokens}, "Access token refreshed successfully"
             )
 
         except Exception as e:
@@ -129,7 +177,7 @@ class AuthService:
 
             user = User.query.get(current_user_id)
             if not user:
-                return ServiceResponseHelper.error("User not found", 404)
+                return ServiceResponseHelper.error(USER_NOT_FOUND, NOT_FOUND)
 
             return ServiceResponseHelper.success(
                 user.to_dict(), "User retrieved successfully"
@@ -146,7 +194,7 @@ class AuthService:
 
             user = User.query.get(current_user_id)
             if not user:
-                return ServiceResponseHelper.error("User not found", 404)
+                return ServiceResponseHelper.error("User not found", NOT_FOUND)
 
             # Add current user ID for validation
             validation_data = data.copy()
@@ -156,7 +204,7 @@ class AuthService:
             validation_result = ProfileUpdateValidator.validate(**validation_data)
             if not validation_result["is_valid"]:
                 return ServiceResponseHelper.error(
-                    validation_result["first_error"], 400
+                    validation_result["first_error"], BAD_REQUEST
                 )
 
             # Update allowed fields
@@ -184,13 +232,13 @@ class AuthService:
 
             user = User.query.get(current_user_id)
             if not user:
-                return ServiceResponseHelper.error("User not found", 404)
+                return ServiceResponseHelper.error("User not found", NOT_FOUND)
 
             # Validate password change data
             validation_result = PasswordChangeValidator.validate(**data)
             if not validation_result["is_valid"]:
                 return ServiceResponseHelper.error(
-                    validation_result["first_error"], 400
+                    validation_result["first_error"], BAD_REQUEST
                 )
 
             current_password = data["current_password"]
@@ -198,7 +246,9 @@ class AuthService:
 
             # Verify current password
             if not user.check_password(current_password):
-                return ServiceResponseHelper.error("Current password is incorrect", 401)
+                return ServiceResponseHelper.error(
+                    CURRENT_PASSWORD_INCORRECT, UNAUTHORIZED
+                )
 
             # Update password
             user.set_password(new_password)
@@ -212,11 +262,17 @@ class AuthService:
 
     @staticmethod
     def logout_user() -> Dict[str, Any]:
-        """Logout user (for future blacklist implementation)"""
+        """Logout user by blacklisting current token"""
         try:
-            # For now, just return success
-            # In future: add token to blacklist
-            return ServiceResponseHelper.success({}, "Logout successful")
+            from services.token_service import TokenService
+
+            # Revoke current token
+            result = TokenService.revoke_current_token(reason="logout")
+
+            if result["success"]:
+                return ServiceResponseHelper.success({}, "Logout successful")
+            else:
+                return result
 
         except Exception as e:
             return ServiceResponseHelper.error(f"Logout failed: {str(e)}")

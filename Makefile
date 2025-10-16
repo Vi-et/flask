@@ -88,10 +88,21 @@ setup-hooks:
 pre-commit-all:
 	pre-commit run --all-files
 
+# Token management commands
+migrate-tokens:
+	@echo "🔧 Running token blacklist migration..."
+	python migrate_token_blacklist.py
+
+cleanup-tokens:
+	@echo "🧹 Running token cleanup..."
+	python scripts/token_cleanup.py once
+
 # Development setup (run this once)
 setup: install-dev setup-hooks
 	@echo "🎉 Development environment setup complete!"
 	@echo "Usage:"
-	@echo "  make lint  - Check code quality"
-	@echo "  make fix   - Auto-fix issues"
-	@echo "  make run   - Start server"
+	@echo "  make lint           - Check code quality"
+	@echo "  make fix            - Auto-fix issues"
+	@echo "  make run            - Start server"
+	@echo "  make migrate-tokens - Create token blacklist table"
+	@echo "  make cleanup-tokens - Clean expired tokens"

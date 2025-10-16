@@ -78,3 +78,8 @@ htmlcov/
 *.pem
 *.key
 *.crt
+
+# Security Reports (generated files, too large for git)
+bandit-report.json
+security-report.*
+*.sarif

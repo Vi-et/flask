@@ -94,3 +94,11 @@ class JWTConfig:
 
             identity = jwt_data["sub"]
             return User.query.filter_by(id=identity).first()
+
+        @jwt.token_in_blocklist_loader
+        def check_if_token_revoked(_jwt_header, jwt_payload):
+            """Check if token is in blacklist"""
+            from models.token_blacklist import TokenBlacklist
+
+            jti = jwt_payload["jti"]
+            return TokenBlacklist.is_token_revoked(jti)

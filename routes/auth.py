@@ -94,9 +94,22 @@ def change_password():
     """
     PUT /api/auth/change-password
     Change user password (requires fresh token)
+    Note: Should revoke all user tokens after password change
     """
     data = request.get_json()
     result = AuthService.change_password(data)
+
+    # If password change successful, revoke current token for security
+    if result.get("success"):
+        try:
+            from services.token_service import TokenService
+
+            TokenService.revoke_current_token(reason="password_change")
+        except Exception as e:
+            # Don't fail password change if token revocation fails
+            # Log the error but continue with successful password change
+            print(f"Warning: Token revocation failed during password change: {e}")
+
     return ResponseHelper.service_response(result)
 
 
