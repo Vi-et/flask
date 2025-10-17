@@ -42,16 +42,14 @@ repos:
       - id: pretty-format-json
         args: [--autofix, --no-sort-keys]
 
-  # Bandit - Security Linter (Local)
-  - repo: local
+  # Bandit - Security Linter
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.5
     hooks:
       - id: bandit
-        name: bandit
-        entry: bandit
-        language: system
-        args: [-r, ., -f, txt, --configfile, .bandit.yaml]
+        additional_dependencies: [pbr]
+        args: [--configfile, .bandit.yaml]
         exclude: ^tests/
-        pass_filenames: false
 
   # mypy - Type Checking
   - repo: https://github.com/pre-commit/mirrors-mypy

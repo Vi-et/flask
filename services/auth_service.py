@@ -34,13 +34,6 @@ from constants.token_constants import (
 from models import db
 from models.user import User
 from utils.service_response_helper import ServiceResponseHelper
-from validators.auth_validators import (
-    LoginValidator,
-    PasswordChangeValidator,
-    ProfileUpdateValidator,
-    SignUpValidator,
-    UserCredentialsValidator,
-)
 
 
 class AuthService:
@@ -50,13 +43,6 @@ class AuthService:
     def register_user(data: Dict[str, Any]) -> Dict[str, Any]:
         """Register a new user"""
         try:
-            validation_result = SignUpValidator.validate(**data)
-
-            if not validation_result["is_valid"]:
-                return ServiceResponseHelper.error(
-                    validation_result["first_error"], BAD_REQUEST
-                )
-
             # Create new user with validated data
             name = data["name"].strip()
             email = data["email"].strip().lower()
@@ -89,13 +75,6 @@ class AuthService:
     def login_user(data: Dict[str, Any]) -> Dict[str, Any]:
         """Login user with email and password"""
         try:
-            # Validate login data
-            validation_result = LoginValidator.validate(**data)
-            if not validation_result["is_valid"]:
-                return ServiceResponseHelper.error(
-                    validation_result["first_error"], BAD_REQUEST
-                )
-
             email = data["email"].strip().lower()
             password = data["password"]
 
@@ -200,13 +179,6 @@ class AuthService:
             validation_data = data.copy()
             validation_data["current_user_id"] = current_user_id
 
-            # Validate profile update data
-            validation_result = ProfileUpdateValidator.validate(**validation_data)
-            if not validation_result["is_valid"]:
-                return ServiceResponseHelper.error(
-                    validation_result["first_error"], BAD_REQUEST
-                )
-
             # Update allowed fields
             if "name" in data:
                 user.name = data["name"].strip()
@@ -233,13 +205,6 @@ class AuthService:
             user = User.query.get(current_user_id)
             if not user:
                 return ServiceResponseHelper.error("User not found", NOT_FOUND)
-
-            # Validate password change data
-            validation_result = PasswordChangeValidator.validate(**data)
-            if not validation_result["is_valid"]:
-                return ServiceResponseHelper.error(
-                    validation_result["first_error"], BAD_REQUEST
-                )
 
             current_password = data["current_password"]
             new_password = data["new_password"]

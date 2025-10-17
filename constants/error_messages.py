@@ -10,6 +10,10 @@ UNAUTHORIZED_ACCESS = "Unauthorized access"
 INVALID_TOKEN_TYPE = "Invalid token type"
 TOKEN_EXPIRED = "Token has expired"
 TOKEN_REVOKED = "Token has been revoked"
+INVALID_TOKEN = "Invalid token"
+MISSING_TOKEN = "Authorization token is required"
+FRESH_TOKEN_REQUIRED = "Fresh token is required"
+REVOKED_TOKEN = "Token has been revoked"
 
 # User Errors
 USER_NOT_FOUND = "User not found"

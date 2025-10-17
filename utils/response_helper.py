@@ -63,9 +63,6 @@ class ResponseHelper:
         """
         response = {"status": "error", "status_code": status_code, "message": message}
 
-        if error_code:
-            response["error_code"] = error_code
-
         # Add additional fields
         response.update(kwargs)
 

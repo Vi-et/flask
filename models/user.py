@@ -1,17 +1,19 @@
 """
 User Model with Authentication Support
 """
+import uuid
 from datetime import datetime, timedelta
 from typing import cast
 
 from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_security import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from config.database import db
 from models import BaseModel
 
 
-class User(BaseModel):
+class User(BaseModel, UserMixin):
     """Model cho bảng users"""
 
     __tablename__ = "users"
@@ -22,6 +24,19 @@ class User(BaseModel):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
     last_login = db.Column(db.DateTime, nullable=True)
+
+    # Flask-Security required fields (4.0+)
+    fs_uniquifier = db.Column(
+        db.String(255), unique=True, nullable=False, default=lambda: str(uuid.uuid4())
+    )
+
+    # Flask-Security relationship với Role
+    roles = db.relationship(
+        "Role",
+        secondary="user_roles",
+        backref=db.backref("users", lazy="dynamic"),
+        lazy="select",
+    )
 
     # Relationship với Post (lazy loading to avoid circular import issues)
     posts = db.relationship(
@@ -45,6 +60,7 @@ class User(BaseModel):
                 "is_admin": self.is_admin,
                 "last_login": self.last_login.isoformat() if self.last_login else None,
                 "posts_count": self.posts.count() if self.posts else 0,
+                "fs_uniquifier": self.fs_uniquifier,
             }
         )
 
@@ -101,15 +117,10 @@ class User(BaseModel):
 
     def update_last_login(self):
         """Update last login timestamp"""
-        self.last_login = datetime.utcnow()
+        self.last_login = datetime.now()
         db.session.commit()
 
     @classmethod
     def get_by_email(cls, email):
         """Get user by email"""
         return cls.query.filter_by(email=email).first()
-
-    @classmethod
-    def get_all_with_posts_count(cls):
-        """Get all users with posts count"""
-        return cls.query.outerjoin(cls.posts).group_by(cls.id).all()

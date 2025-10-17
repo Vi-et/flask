@@ -6,6 +6,7 @@ from typing import Optional
 
 from flask import Flask, request
 
+from config.auth.auth_app import AuthApp
 from config.config import config
 from config.database import db, init_database
 from utils.loguru_config import LoguruConfig
@@ -27,6 +28,8 @@ def create_app(config_name: Optional[str] = None) -> Flask:
 
     # Initialize extensions
     db.init_app(app)
+
+    AuthApp.init_app(app)
 
     # Register blueprints
     register_blueprints(app)
