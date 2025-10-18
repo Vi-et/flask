@@ -44,14 +44,13 @@ class AuthService:
         """Register a new user"""
         try:
             # Create new user with validated data
-            name = data["name"].strip()
+            name = data.get("name", data["email"].split("@")[0])
             email = data["email"].strip().lower()
             password = data["password"]
 
             user = User(name=name, email=email)
             user.set_password(password)
 
-            # Sử dụng BaseModel.save() method
             if not user.save():
                 return ServiceResponseHelper.error(
                     DATABASE_ERROR, INTERNAL_SERVER_ERROR
@@ -68,7 +67,6 @@ class AuthService:
             )
 
         except Exception as e:
-            # Note: user.save() already handles rollback internally
             return ServiceResponseHelper.error(f"Registration failed: {str(e)}")
 
     @staticmethod
@@ -84,7 +82,7 @@ class AuthService:
                 return ServiceResponseHelper.error(INVALID_CREDENTIALS, UNAUTHORIZED)
 
             # Check if user is active
-            if not user.is_active:
+            if not user.active:
                 return ServiceResponseHelper.error(ACCOUNT_DEACTIVATED, UNAUTHORIZED)
 
             # Verify password
@@ -126,7 +124,7 @@ class AuthService:
                 )
 
             user = User.query.get(current_user_id)
-            if not user or not user.is_active:
+            if not user or not user.active:
                 return ServiceResponseHelper.error(USER_INACTIVE, NOT_FOUND)
 
             # Revoke current refresh token first (Token Rotation)

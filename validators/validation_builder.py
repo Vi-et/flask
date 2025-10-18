@@ -3,41 +3,26 @@ class ValidationBuilder:
         self.rules = []
         self.errors = []
 
-    def push_error(self, message):
-        """Push error message to errors list"""
-        self.errors.append(message)
-
     def build(self):
         """Build the validation function"""
 
         def validator(**kwargs):
-            # Reset errors for each validation
-            self.errors = []
-
-            # Pass self to rules so they can push errors
             for rule in self.rules:
-                rule(self, **kwargs)
+                rule(kwargs)
 
-            return {
-                "is_valid": len(self.errors) == 0,
-                "errors": self.errors.copy(),
-                "first_error": self.errors[0] if self.errors else None,
-            }
-
-        # Store reference for is_valid method
-        self._validator = validator
         return validator
 
 
 class BaseValidation:
-    @classmethod
-    def get_builder(cls):
-        """Override this to return the validation builder"""
-        return ValidationBuilder()
+    _builder = ValidationBuilder()
 
     @classmethod
     def validate(cls, **kwargs):
-        """Validate data and return result"""
-        builder = cls.get_builder()
-        validator = builder.build()
-        return validator(**kwargs)
+        cls._builder.errors = []  # Reset errors
+        validator = cls._builder.build()
+        validator(**kwargs)
+        return {
+            "is_valid": len(cls._builder.errors) == 0,
+            "errors": cls._builder.errors,
+            "first_error": cls._builder.errors[0] if cls._builder.errors else None,
+        }

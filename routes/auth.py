@@ -5,13 +5,14 @@ Routes for user registration, login, logout, and profile management
 from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
+from constants.http_status import BAD_REQUEST
 from services.auth_service import AuthService
-from utils.auth_decorators import auth_required, fresh_jwt_required
 from utils.response_helper import ResponseHelper
 from utils.route_decorators import log_api_route
+from validators.auth_validators import RegisterValidator
 
 # Create Blueprint
-auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
+auth_bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -22,6 +23,12 @@ def register():
     Register a new user
     """
     data = request.get_json()
+    validate_result = RegisterValidator.validate(**data)
+    if not validate_result["is_valid"]:
+        return ResponseHelper.error_response(
+            validate_result["first_error"], BAD_REQUEST
+        )
+
     result = AuthService.register_user(data)
     return ResponseHelper.service_response(result)
 
@@ -88,7 +95,6 @@ def update_profile():
 
 
 @auth_bp.route("/change-password", methods=["PUT"])
-@fresh_jwt_required()
 @log_api_route("auth", "change_password")
 def change_password():
     """

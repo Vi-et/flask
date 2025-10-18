@@ -6,7 +6,6 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 
 from services.token_service import TokenService
-from utils.auth_decorators import admin_required
 from utils.response_helper import ResponseHelper
 from utils.route_decorators import log_api_route
 
@@ -42,7 +41,6 @@ def revoke_current_token():
 
 
 @tokens_bp.route("/revoke/<token_jti>", methods=["POST"])
-@admin_required()
 @log_api_route("tokens", "revoke_specific")
 def revoke_specific_token(token_jti):
     """
@@ -77,7 +75,6 @@ def get_user_blacklisted_tokens():
 
 
 @tokens_bp.route("/blacklist/<int:user_id>", methods=["GET"])
-@admin_required()
 @log_api_route("tokens", "get_user_blacklist")
 def get_user_blacklisted_tokens_admin(user_id):
     """
@@ -89,7 +86,6 @@ def get_user_blacklisted_tokens_admin(user_id):
 
 
 @tokens_bp.route("/cleanup", methods=["POST"])
-@admin_required()
 @log_api_route("tokens", "cleanup")
 def cleanup_expired_tokens():
     """
@@ -101,7 +97,6 @@ def cleanup_expired_tokens():
 
 
 @tokens_bp.route("/validate/<token_jti>", methods=["GET"])
-@admin_required()
 @log_api_route("tokens", "validate")
 def validate_token(token_jti):
     """
