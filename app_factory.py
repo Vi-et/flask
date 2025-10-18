@@ -51,11 +51,16 @@ def create_app(config_name: Optional[str] = None) -> Flask:
 
 
 def register_blueprints(app: Flask) -> None:
-    """Auto-register all blueprints from routes directory"""
-    from blueprint_discovery import auto_register_blueprints
+    """Register API blueprints with versioning"""
+    from blueprint_discovery import register_api_versions
 
-    # Auto-discover và register tất cả blueprints
-    auto_register_blueprints(app, routes_dir="routes", verbose=False)
+    # Register versioned API endpoints
+    register_api_versions(app)
+
+    # Optional: Auto-register legacy blueprints from routes directory
+    # Uncomment if you want to keep old route structure alongside versioned APIs
+    # from blueprint_discovery import auto_register_blueprints
+    # auto_register_blueprints(app, routes_dir="routes", verbose=False)
 
 
 def register_error_handlers(app: Flask) -> None:

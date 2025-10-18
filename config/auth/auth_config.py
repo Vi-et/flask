@@ -8,7 +8,6 @@ ACCESS_TOKEN_EXPIRES = 3600
 REFRESH_TOKEN_EXPIRES = 2592000
 ALGORITHM = "HS256"
 ERROR_MESSAGE_KEY = "message"
-BCRYPT = "bcrypt"
 HEADER_NAME = "Authorization"
 SECRET_KEY = os.getenv("SECRET_KEY", "me_may_beo")
 
