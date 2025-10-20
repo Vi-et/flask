@@ -10,7 +10,7 @@ class Post(BaseModel):
 
     __tablename__ = "posts"
 
-    title = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text, nullable=False)
 
     # Foreign key

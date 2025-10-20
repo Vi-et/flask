@@ -5,6 +5,7 @@ import os
 from typing import Optional
 
 from flask import Flask, request
+from flask_migrate import Migrate
 
 from config.auth.auth_app import AuthApp
 from config.config import config
@@ -28,6 +29,9 @@ def create_app(config_name: Optional[str] = None) -> Flask:
 
     # Initialize extensions
     db.init_app(app)
+
+    # Initialize Flask-Migrate
+    Migrate(app, db)
 
     AuthApp.init_app(app)
 
