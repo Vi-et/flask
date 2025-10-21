@@ -12,7 +12,12 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Database
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or "sqlite:///blog.db"
+    # Option 1: Use environment variable (recommended)
+    # Option 2: Use PostgreSQL directly (uncomment line below)
+    SQLALCHEMY_DATABASE_URI = (
+        "postgresql://flask_user:flask_password_123@localhost:5432/flask_dev"
+    )
+    # Old SQLite: "sqlite:///blog.db"
 
     # Pagination
     POSTS_PER_PAGE = 5
@@ -26,8 +31,8 @@ class Config:
 class DevelopmentConfig(Config):
     """Development configuration"""
 
-    DEBUG = True
-    SQLALCHEMY_ECHO = True  # Log SQL queries
+    DEBUG = False
+    SQLALCHEMY_ECHO = False  # Log SQL queries
 
 
 class ProductionConfig(Config):
