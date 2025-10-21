@@ -1,0 +1,38 @@
+📦 DEPLOYMENT FOLDER - FILES OVERVIEW
+=====================================
+
+📖 DOCUMENTATION (8 files):
+├── YOU_ARE_HERE.md (9.0K)                ⭐ BẮT ĐẦU ĐÂY - Bạn đang ở đây!
+├── DEPLOY_CHECKLIST.md (5.9K)            ⚡ Quick deploy (5 phút)
+├── DEPLOY_GUIDE.md (9.5K)                📖 Full guide (3 platforms)
+├── PACKAGES_EXPLAINED.md (10K)           📦 Gunicorn & Psycopg2
+├── README_EXPLAINED_FOR_BEGINNERS.md (21K) 🎓 Chi tiết cho người mới
+├── START_HERE.md (9.2K)                  🗺️ Hướng dẫn đọc
+├── SUMMARY.md (7.7K)                     📝 Tóm tắt toàn bộ
+└── README.md (7.3K)                      📋 Index
+
+🐳 DOCKER (3 files):
+├── Dockerfile                            🏗️ Build image
+├── docker-compose.yml                    🎼 Multi-container
+└── .dockerignore                         🚫 Ignore files
+
+🤖 GITHUB ACTIONS (4 files):
+├── ci.yml                                ✅ Continuous Integration
+├── cd.yml                                🚀 Continuous Deployment
+├── docker.yml                            🐳 Docker build & push
+└── cleanup.yml                           🧹 Cleanup artifacts
+
+📊 TOTAL:
+- Documentation: 8 files (79K)
+- Docker: 3 files
+- CI/CD: 4 files
+- Total: 15 files
+
+🎯 LỘ TRÌNH ĐỌC:
+1. YOU_ARE_HERE.md          (2 phút) - Hiện tại của bạn
+2. DEPLOY_CHECKLIST.md      (5 phút) - Deploy ngay!
+3. DEPLOY_GUIDE.md          (10 phút) - Chi tiết platforms
+4. PACKAGES_EXPLAINED.md    (5 phút) - Hiểu dependencies
+
+🚀 DEPLOY NGAY:
+cat DEPLOY_CHECKLIST.md

@@ -15,6 +15,13 @@ load_dotenv()
 app = create_app()
 
 
+# Health check endpoint for Docker/K8s
+@app.route("/health")
+def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "message": "Flask app is running"}, 200
+
+
 # Chỉ chạy server khi file được chạy trực tiếp
 if __name__ == "__main__":
     print("� Đang khởi động Flask server ...")

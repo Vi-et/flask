@@ -7,6 +7,7 @@ from typing import Optional
 from flask import Flask, request
 from flask_migrate import Migrate
 
+from blueprint_discovery import register_api_versions
 from config.auth.auth_app import AuthApp
 from config.config import config
 from config.database import db, init_database
@@ -36,7 +37,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     AuthApp.init_app(app)
 
     # Register blueprints
-    register_blueprints(app)
+    register_api_versions(app)
 
     # Register error handlers
     register_error_handlers(app)
@@ -52,19 +53,6 @@ def create_app(config_name: Optional[str] = None) -> Flask:
         init_database(app)
 
     return app
-
-
-def register_blueprints(app: Flask) -> None:
-    """Register API blueprints with versioning"""
-    from blueprint_discovery import register_api_versions
-
-    # Register versioned API endpoints
-    register_api_versions(app)
-
-    # Optional: Auto-register legacy blueprints from routes directory
-    # Uncomment if you want to keep old route structure alongside versioned APIs
-    # from blueprint_discovery import auto_register_blueprints
-    # auto_register_blueprints(app, routes_dir="routes", verbose=False)
 
 
 def register_error_handlers(app: Flask) -> None:

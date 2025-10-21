@@ -1,0 +1,236 @@
+name: CD - Continuous Deployment
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Job 1: Deploy to Staging
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.your-app.com
+    if: github.ref == 'refs/heads/master' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: 🔧 Setup environment variables
+      run: |
+        echo "FLASK_ENV=staging" >> $GITHUB_ENV
+        echo "DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }}" >> $GITHUB_ENV
+
+    - name: 🗄️ Run database migrations
+      run: |
+        flask db upgrade
+      env:
+        DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        SECRET_KEY: ${{ secrets.STAGING_SECRET_KEY }}
+
+    - name: 🚀 Deploy to Staging Server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USERNAME }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        script: |
+          cd /var/www/flask-app
+          git pull origin master
+          source venv/bin/activate
+          pip install -r requirements.txt
+          flask db upgrade
+          sudo systemctl restart flask-app
+
+    - name: 🏥 Health Check
+      run: |
+        sleep 10
+        curl -f https://staging.your-app.com/health || exit 1
+
+    - name: 📢 Notify Slack
+      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: 'Staging deployment ${{ job.status }}'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 2: Deploy to Production
+  deploy-production:
+    name: 🏭 Deploy to Production
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://your-app.com
+    needs: deploy-staging
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 📦 Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: 🔧 Setup environment variables
+      run: |
+        echo "FLASK_ENV=production" >> $GITHUB_ENV
+        echo "DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }}" >> $GITHUB_ENV
+
+    - name: 💾 Backup database
+      run: |
+        # Run backup script
+        echo "Creating database backup..."
+        # Your backup logic here
+
+    - name: 🗄️ Run database migrations
+      run: |
+        flask db upgrade
+      env:
+        DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        SECRET_KEY: ${{ secrets.PRODUCTION_SECRET_KEY }}
+
+    - name: 🚀 Deploy to Production Server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        script: |
+          cd /var/www/flask-app
+          git fetch --all --tags
+          git checkout ${{ github.ref_name }}
+          source venv/bin/activate
+          pip install -r requirements.txt
+          flask db upgrade
+          sudo systemctl restart flask-app
+
+    - name: 🏥 Health Check
+      run: |
+        sleep 15
+        for i in {1..5}; do
+          if curl -f https://your-app.com/health; then
+            echo "✅ Health check passed!"
+            exit 0
+          fi
+          echo "Attempt $i failed, retrying..."
+          sleep 10
+        done
+        echo "❌ Health check failed!"
+        exit 1
+
+    - name: 📊 Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+
+    - name: 📢 Notify Slack - Success
+      if: success()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: custom
+        custom_payload: |
+          {
+            text: '🎉 Production deployment successful!',
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: '*Deployment Status:* ✅ Success\n*Environment:* Production\n*Version:* ${{ github.ref_name }}\n*URL:* https://your-app.com'
+                }
+              }
+            ]
+          }
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+    - name: 📢 Notify Slack - Failure
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: custom
+        custom_payload: |
+          {
+            text: '❌ Production deployment failed!',
+            blocks: [
+              {
+                type: 'section',
+                text: {
+                  type: 'mrkdwn',
+                  text: '*Deployment Status:* ❌ Failed\n*Environment:* Production\n*Version:* ${{ github.ref_name }}\n*Action:* Rollback required!'
+                }
+              }
+            ]
+          }
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Job 3: Rollback (Manual trigger)
+  rollback:
+    name: ⏮️ Rollback
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+
+    steps:
+    - name: ⏮️ Rollback to previous version
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USERNAME }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        script: |
+          cd /var/www/flask-app
+          git checkout HEAD~1
+          source venv/bin/activate
+          flask db downgrade
+          sudo systemctl restart flask-app
+
+    - name: 📢 Notify rollback
+      uses: 8398a7/action-slack@v3
+      with:
+        status: custom
+        custom_payload: |
+          {
+            text: '⏮️ Production rollback completed'
+          }
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
